@@ -11,9 +11,33 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
-        //
+    ->withMiddleware(function ($middleware) {
+    $middleware->alias([
+        'role.check' => \App\Http\Middleware\CheckUserRole::class,
+    ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+
+    $exceptions->render(function (\Illuminate\Validation\ValidationException $e, $request) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation failed',
+            'errors' => $e->errors(),
+        ], 422);
+    });
+
+    $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException $e, $request) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized',
+        ], 401);
+    });
+
+    $exceptions->render(function (\Throwable $e, $request) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Something went wrong',
+            'error' => app()->environment('local') ? $e->getMessage() : null,
+        ], 500);
+    });
     })->create();
