@@ -4,24 +4,39 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-class Lesson extends Model
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+
+class Lesson extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory,InteractsWithMedia;
 
     protected $fillable = [
-        'section_id',
+        'course_id',
         'title',
         'content',
-        'video_url',
+        'sort_order',
+        'is_published',
     ];
-
-    public function section()
+    protected $casts = [
+        'is_published' => 'boolean',
+    ];
+    public function course()
     {
-        return $this->belongsTo(Section::class);
+        return $this->belongsTo(Course::class);
     }
 
-    public function media()
+    public function registerMediaCollections(): void
     {
-        return $this->morphMany(Media::class, 'mediable');
+        $this->addMediaCollection('videos');
+        $this->addMediaCollection('materials');
     }
+    // public function registerMediaConversions(?Media $media = null): void
+    // {
+    //     $this->addMediaConversion('thumb')
+    //         ->width(368)
+    //         ->height(232)
+    //         ->sharpen(10);
+    // }
 }

@@ -13,11 +13,13 @@ return new class extends Migration
     {
         Schema::create('lessons', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('section_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('course_id')->constrained()->cascadeOnDelete();
             $table->string('title');
             $table->text('content')->nullable();
-            $table->string('video_url')->nullable();
+            $table->unsignedInteger('sort_order')->default(1);
+            $table->boolean('is_published')->default(false);
             $table->timestamps();
+            $table->unique(['course_id', 'sort_order']);
         });
     }
 

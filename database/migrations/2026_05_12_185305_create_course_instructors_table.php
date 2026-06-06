@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('media', function (Blueprint $table) {
+        Schema::create('course_instructors', function (Blueprint $table) {
             $table->id();
-            $table->morphs('mediable');
-            $table->string('disk')->default('public');
-            $table->string('path');
-            $table->string('type');
+            $table->foreignId('course_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('instructor_id')->constrained('users')->cascadeOnDelete();
+            $table->unique(['course_id', 'instructor_id']);
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('media');
+        Schema::dropIfExists('course_instructors');
     }
 };

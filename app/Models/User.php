@@ -18,6 +18,7 @@ class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable,HasApiTokens,HasRoles;
+    protected string $guard_name ='api';
     protected function casts(): array
     {
         return [
@@ -28,7 +29,7 @@ class User extends Authenticatable
 
     public function courses()
     {
-        return $this->hasMany(Course::class, 'instructor_id');
+        return $this->belongsToMany(Course::class, 'course_instructors', 'instructor_id', 'course_id');
     }
 
     public function enrollments()
