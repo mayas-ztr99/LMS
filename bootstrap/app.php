@@ -40,4 +40,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'error' => app()->environment('local') ? $e->getMessage() : null,
         ], 500);
     });
+
+    $exceptions->render(function(\Illuminate\Auth\AuthenticationException $e, $request) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthenticated',
+        ], 401);
+    });
     })->create();

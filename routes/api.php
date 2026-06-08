@@ -5,7 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Course\CourseController;
 use App\Http\Controllers\Admin\CourseMediaController;
+use App\Http\Controllers\LatestNewsController;
 use App\Http\Controllers\Lesson\LessonController;
+use App\Http\Controllers\ReviewController;
 
 Route::get('/test',[TestController::class,'test']);
 
@@ -34,5 +36,7 @@ Route::middleware(['auth:sanctum', 'role.check:Admin'])
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('courses',CourseController::class);
     Route::apiResource('lessons', LessonController::class);
+    Route::apiResource('reviews', ReviewController::class);
+    Route::apiResource('latest-news',LatestNewsController::class)->parameters(['latest-news' => 'latestNews'])->only([ 'store', 'update', 'destroy']    );
 });
-
+Route::apiResource('latest-news',LatestNewsController::class)->parameters(['latest-news' => 'latestNews'])->only(['index', 'show']);
