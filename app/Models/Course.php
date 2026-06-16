@@ -53,7 +53,12 @@ class Course extends Model implements HasMedia
     {
         return $this->hasMany(Enrollment::class);
     }
-
+    public function students()
+    {
+        return $this->belongsToMany(User::class, 'enrollments', 'course_id', 'student_id')
+            ->withPivot('status', 'paid_price', 'enrolled_at')
+            ->withTimestamps();
+    }
     public function payments()
     {
         return $this->hasManyThrough(Payment::class, Enrollment::class);

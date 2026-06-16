@@ -9,21 +9,21 @@ class Enrollment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
+        'student_id',
         'course_id',
         'coupon_id',
         'status',
-        'price_paid',
+        'paid_price',
         'enrolled_at',
     ];
 
     protected $casts =[
-        'price_paid' => 'decimal:2',
+        'paid_price' => 'decimal:2',
         'enrolled_at'=>'date'
     ];
     public function student()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'student_id');
     }
 
     public function course()
