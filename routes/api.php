@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Course\CourseController;
 use App\Http\Controllers\Admin\CourseMediaController;
+use App\Http\Controllers\CouponController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\LatestNewsController;
 use App\Http\Controllers\Lesson\LessonController;
@@ -42,5 +43,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('enrollments', EnrollmentController::class);
     Route::get('students/{student}/courses', [EnrollmentController::class, 'studentCourses']);
     Route::get('courses/{course}/students', [EnrollmentController::class, 'courseStudents']);
+    Route::apiResource('coupons', CouponController::class);
+    Route::post('coupons/preview',[CouponController::class,'preview'])->name('coupons.preview');
     });
 Route::apiResource('latest-news',LatestNewsController::class)->parameters(['latest-news' => 'latestNews'])->only(['index', 'show']);
