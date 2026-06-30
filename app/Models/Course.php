@@ -61,7 +61,7 @@ class Course extends Model implements HasMedia
     }
     public function payments()
     {
-        return $this->hasManyThrough(Payment::class, Enrollment::class);
+        return $this->hasMany(Payment::class);
     }
 
     public function reviews()

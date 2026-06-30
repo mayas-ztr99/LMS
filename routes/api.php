@@ -5,11 +5,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Course\CourseController;
 use App\Http\Controllers\Admin\CourseMediaController;
+use App\Http\Controllers\Api\FcmTokenController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\LatestNewsController;
 use App\Http\Controllers\Lesson\LessonController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\StripeWebhookController;
 
 Route::get('/test',[TestController::class,'test']);
 
@@ -45,5 +48,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('courses/{course}/students', [EnrollmentController::class, 'courseStudents']);
     Route::apiResource('coupons', CouponController::class);
     Route::post('coupons/preview',[CouponController::class,'preview'])->name('coupons.preview');
+    Route::post('courses/{course}/checkout', [PaymentController::class, 'store']);
+    Route::get('payments/{payment}', [PaymentController::class, 'show']);
+    Route::post('/fcm-token', [FcmTokenController::class, 'store']);
     });
 Route::apiResource('latest-news',LatestNewsController::class)->parameters(['latest-news' => 'latestNews'])->only(['index', 'show']);
+Route::post('stripe/webhook', [StripeWebhookController::class, 'handle']);

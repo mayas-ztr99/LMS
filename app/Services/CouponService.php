@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Course;
 use App\Models\Coupon;
-use App\Models\Enrollment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -67,8 +66,7 @@ class CouponService
         }
 
         $coupon = Coupon::query()
-            ->where('code',strtoupper(trim($couponCode)))
-            ->lockForUpdate()
+            ->where('code', strtoupper(trim($couponCode)))
             ->first();
 
         $this->validateCouponForPreview($coupon);
@@ -90,19 +88,22 @@ class CouponService
         ];
     }
 
-    public function consumeCouponAfterPayment(int $courseId, int $userId, ?string $couponCode = null): ?Coupon
+    public function consumeCoupon(Coupon $coupon): Coupon
     {
-        if (!$couponCode) {
-            return null;
-        }
+        return DB::transaction(function () use ($coupon) {
+            $coupon = Coupon::whereKey($coupon->id)->lockForUpdate()->firstOrFail();
 
-        return DB::transaction(function () use ($courseId, $userId, $couponCode) {
-            $coupon = Coupon::query()
-            ->where('code',strtoupper(trim($couponCode)))
-            ->lockForUpdate()
-            ->first();
+            if (! $coupon->is_active) {
+                throw ValidationException::withMessages([
+                    'coupon_code' => ['This coupon is not active.'],
+                ]);
+            }
 
-            $this->validateCouponForConsume($coupon);
+            if ($coupon->expires_at && now()->greaterThan($coupon->expires_at)) {
+                throw ValidationException::withMessages([
+                    'coupon_code' => ['This coupon has expired.'],
+                ]);
+            }
 
             if ($coupon->max_uses !== null && $coupon->used_count >= $coupon->max_uses) {
                 throw ValidationException::withMessages([
@@ -115,13 +116,6 @@ class CouponService
             if ($coupon->max_uses !== null && $coupon->used_count >= $coupon->max_uses) {
                 $coupon->update(['is_active' => false]);
             }
-
-            Enrollment::create([
-                'user_id' => $userId,
-                'course_id' => $courseId,
-                'coupon_id' => $coupon->id,
-            ]);
-
             return $coupon->refresh();
         });
     }
@@ -140,13 +134,13 @@ class CouponService
     }
     private function validateCouponForPreview(?Coupon $coupon): void
     {
-        if (!$coupon) {
+        if (! $coupon) {
             throw ValidationException::withMessages([
                 'coupon_code' => ['Coupon code is invalid.'],
             ]);
         }
 
-        if (!$coupon->is_active) {
+        if (! $coupon->is_active) {
             throw ValidationException::withMessages([
                 'coupon_code' => ['This coupon is not active.'],
             ]);
@@ -163,10 +157,5 @@ class CouponService
                 'coupon_code' => ['This coupon has reached its maximum number of uses.'],
             ]);
         }
-    }
-
-    private function validateCouponForConsume(?Coupon $coupon): void
-    {
-        $this->validateCouponForPreview($coupon);
     }
 }

@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Events\StudentEnrolled;
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -35,7 +37,7 @@ class EnrollmentService
                 ]);
             }
 
-            return Enrollment::create([
+            $enrollment = Enrollment::create([
                 'student_id'  => $data['student_id'],
                 'course_id'   => $data['course_id'],
                 'coupon_id'   => $data['coupon_id'] ?? null,
@@ -43,6 +45,10 @@ class EnrollmentService
                 'paid_price'  => $data['paid_price'] ?? 0,
                 'enrolled_at' => now(),
             ]);
+
+            event(new StudentEnrolled($enrollment));
+            logger()->info('after Student enrolled event');
+            return $enrollment->load(['student', 'course', 'coupon']);
         });
     }
 
@@ -76,5 +82,31 @@ class EnrollmentService
         return $course->students()
             ->latest('enrollments.created_at')
             ->get();
+    }
+
+    public function createFromPaidPayment(Payment $payment): Enrollment
+    {
+        return DB::transaction(function () use ($payment) {
+            $existing = Enrollment::where('student_id', $payment->user_id)
+                ->where('course_id', $payment->course_id)
+                ->first();
+
+            if ($existing) {
+                return $existing;
+            }
+
+            $enrollment = Enrollment::create([
+                'student_id'  => $payment->user_id,
+                'course_id'   => $payment->course_id,
+                'coupon_id'   => $payment->coupon_id,
+                'status'      => 'active',
+                'paid_price'  => $payment->final_amount,
+                'enrolled_at' => now(),
+            ]);
+
+            event(new StudentEnrolled($enrollment));
+            logger()->info('after Student enrolled event from payment');
+            return $enrollment->load(['student', 'course', 'coupon']);
+        });
     }
 }
