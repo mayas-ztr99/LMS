@@ -5,7 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Course\CourseController;
 use App\Http\Controllers\Admin\CourseMediaController;
+use App\Http\Controllers\Api\ConversationController ;
 use App\Http\Controllers\Api\FcmTokenController;
+use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\LatestNewsController;
@@ -51,6 +53,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('courses/{course}/checkout', [PaymentController::class, 'store']);
     Route::get('payments/{payment}', [PaymentController::class, 'show']);
     Route::post('/fcm-token', [FcmTokenController::class, 'store']);
+
+    Route::apiResource('conversations',ConversationController::class)->only(['index', 'store', 'show']);
+    // الرسائل
+    Route::get('conversations/{conversation}/messages', [MessageController::class, 'index']);
+    Route::post('messages', [MessageController::class, 'store']);
     });
 Route::apiResource('latest-news',LatestNewsController::class)->parameters(['latest-news' => 'latestNews'])->only(['index', 'show']);
 Route::post('stripe/webhook', [StripeWebhookController::class, 'handle']);

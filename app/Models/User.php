@@ -12,13 +12,13 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password','role'])]
+#[Fillable(['name', 'email', 'password', 'role'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable,HasApiTokens,HasRoles;
-    protected string $guard_name ='api';
+    use HasFactory, Notifiable, HasApiTokens, HasRoles;
+    protected string $guard_name = 'api';
     protected function casts(): array
     {
         return [
@@ -34,7 +34,7 @@ class User extends Authenticatable
 
     public function enrollments()
     {
-        return $this->hasMany(Enrollment::class,'student_id');
+        return $this->hasMany(Enrollment::class, 'student_id');
     }
 
     public function enrolledCourses()
@@ -56,5 +56,20 @@ class User extends Authenticatable
     public function deviceTokens()
     {
         return $this->hasMany(DeviceToken::class);
+    }
+    // العلاقات مع المحادثات
+    public function conversationsAsStudent()
+    {
+        return $this->hasMany(Conversation::class, 'student_id');
+    }
+
+    public function conversationsAsInstructor()
+    {
+        return $this->hasMany(Conversation::class, 'instructor_id');
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(Message::class);
     }
 }
